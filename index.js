@@ -1,7 +1,15 @@
 import express from 'express'
-import { PORT } from './config'
+import { PORT } from './config.js'
+import userRoutes from './routes/users.routes.js'
+import cookieParser from 'cookie-parser'
 
 const app = express()
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
+
+app.use(userRoutes);
+
 
 app.listen(PORT, () => {
     console.log(`Servidor corriento en el puerto ${PORT}`)
