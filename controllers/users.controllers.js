@@ -23,6 +23,7 @@ export const register = async(req,res)=>{
 export const login = async(req,res)=>{
     try {
         const rb = req.body;
+        console.log(rb)
         const result = await pool.query('SELECT * FROM usuarios WHERE usuarionombre = $1',[rb.name]);
         if(result.rowCount == 0){
             return res.status(404).json({message: "No existe el Usuario"});
@@ -30,13 +31,13 @@ export const login = async(req,res)=>{
 
         const isValid = await bcrypt.compare(rb.password,result.rows[0].usuariocontrasena);
 
-        if (isValid){       
+        if (isValid){ 
             res.status(200).json({
-                usuario: result.rows[0].usuarionombre,
+                usuario: result.rows[0].usuarionombre, 
                 rol: result.rows[0].usuariorol})
         }
         else{
-            return res.status(401).json({error:"Contraseña Incorrecta"})
+            return res.status(401).json({message:"Contraseña Incorrecta"})
         }
 
 
