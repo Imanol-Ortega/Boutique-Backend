@@ -23,7 +23,7 @@ export const guardarCategorias = async(req,res)=>{
         const rp = req.body;
         const result = await pool.query('INSERT INTO categorias (categorianombre) VALUES ($1)',[rp.categorianombre]);
 
-        res.status(200).json(result.rows)
+        return res.status(200).json({message:'Se guardo correctamente'})
     } catch (error) {
         return res.status(500).json({'message':error.message})
     }
@@ -33,7 +33,7 @@ export const actualizarCategoria = async(req,res)=>{
     try {
         const rp = req.body
         const result = await pool.query('UPDATE categorias SET categorianombre = $1 WHERE categoriaid = $2',[rp.categorianombre, req.params.id]);
-        res.status(200).json(result.rows)
+        return res.status(200).json({message:'Se actualizo correctamente'})
     } catch (error) {
         return res.status(500).json({'message':error.message})
     }
@@ -42,7 +42,7 @@ export const actualizarCategoria = async(req,res)=>{
 export const eliminarCategoria = async(req,res)=>{
     try {
         const result = await pool.query('UPDATE categorias SET categoriaestado = FALSE WHERE categoriaid = $1',[req.params.id]);
-        res.status(200).json(result.rows)
+        return res.status(200).json({message:'Se elimino correctamente'})
     } catch (error) {
         return res.status(500).json({'message':error.message})
     }

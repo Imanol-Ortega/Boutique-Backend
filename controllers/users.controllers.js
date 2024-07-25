@@ -7,12 +7,13 @@ export const register = async(req,res)=>{
         const find = await pool.query('SELECT usuarionombre FROM usuarios WHERE usuarionombre = $1',[rb.name]);
 
         if(find.rowCount != 0){
+            console.log("hola")
             return res.status(409).json({error:'El nombre de usuario ya existe', message:"Desea iniciar sesion"});
         }
 
         const hashedPassword = await bcrypt.hash(rb.password,10)
-        const result = await pool.query('INSERT INTO usuarios (usuarionombre,usuariocontrasena) VALUES ($1,$2)',[rb.name,hashedPassword]);
-        res.status(200).json({message:"Usuario creado correctamente"})
+        const result = await pool.query('INSERT INTO usuarios (usuarionombre,usuariocontrasena,usuariorol) VALUES ($1,$2,$3) RETURNING usuarioid',[rb.name,hashedPassword,rb.rol]);
+        res.status(200).json({message:"Usuario creado correctamente",usuarioid:result.rows[0].usuarioid});
 
 
     } catch (error) {
