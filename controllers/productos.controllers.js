@@ -2,7 +2,7 @@ import { pool } from "../db.js";
 
 export const obtener = async(req,res)=>{
     try {
-        const response = await pool.query('SELECT p.productoid, c.categorianombre, p.productonombre, p.productodescripcion, p.productocantidad, p.productoprecio, p.productoimagen FROM productos p JOIN categorias c ON p.categoriaid = c.categoriaid WHERE productoestado = true');
+        const response = await pool.query('SELECT p.productoid, c.categorianombre, p.productonombre, p.productodescripcion, p.productocantidad, p.productoprecio, p.productoimagen FROM productos p JOIN categorias c ON p.categoriaid = c.categoriaid WHERE productoestado = true AND productocantidad > 0');
 
         return res.status(200).json(response.rows);
     } catch (error) {
@@ -14,9 +14,9 @@ export const obtenerUno = async(req,res)=>{
     try {
         const response = await pool.query('SELECT p.productoid,c.categoriaid,p.productocatpersona, p.productonombre, p.productodescripcion, p.productocantidad, p.productoprecio, p.productoimagen FROM productos p JOIN categorias c ON p.categoriaid = c.categoriaid WHERE p.productoid = $1 AND productoestado = true',[req.params.id]);
 
-        const rptalla = await pool.query('SELECT t.tallaid FROM tallas t JOIN tallas_producto tp ON tp.tallaid = t.tallaid WHERE tp.productoid = $1 GROUP BY t.tallaid,t.tallanombre',[req.params.id]);
+        const rptalla = await pool.query('SELECT t.tallaid,t.tallanombre FROM tallas t JOIN tallas_producto tp ON tp.tallaid = t.tallaid WHERE tp.productoid = $1 GROUP BY t.tallaid,t.tallanombre',[req.params.id]);
 
-        const rpcolor = await pool.query('SELECT c.colorid FROM colores c JOIN colores_disponibles cd ON cd.colorid = c.colorid WHERE cd.productoid = $1 GROUP BY c.colorid, c.colornombre',[req.params.id]);
+        const rpcolor = await pool.query('SELECT c.colorid,c.colornombre FROM colores c JOIN colores_disponibles cd ON cd.colorid = c.colorid WHERE cd.productoid = $1 GROUP BY c.colorid, c.colornombre',[req.params.id]);
 
         return res.status(200).json({productos:response.rows,tallas:rptalla.rows,colores:rpcolor.rows});
     } catch (error) {
@@ -29,7 +29,7 @@ export const guardar = async(req,res)=>{
         const {productonombre,productodescripcion,productocantidad,productoprecio,productoimagen,productocatpersona,categoriaid,tallas,colores} = req.body;
         const response = await pool.query('INSERT INTO productos (productonombre,productodescripcion,productocantidad,productoprecio,productoimagen,productocatpersona,categoriaid) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING productoid',
                         [productonombre,productodescripcion,productocantidad,productoprecio,productoimagen,productocatpersona,categoriaid]);
-        console.log(colores)
+        
         for(let i=0;i<tallas.length;i++){
             const rptalla = await pool.query('INSERT INTO tallas_producto (productoid,tallaid) VALUES ($1,$2)',[response.rows[0].productoid,tallas[i].tallaid]);
         };
@@ -46,7 +46,7 @@ export const guardar = async(req,res)=>{
 export const actualizar = async(req,res)=>{
     try {
         const {productonombre,productodescripcion,productocantidad,productoprecio,productoimagen,productocatpersona,categoriaid,tallas,colores} = req.body;
-        console.log(colores)
+        
         const reponse = await pool.query('UPDATE productos SET productonombre = $1, productodescripcion = $2, productocantidad = $3, productoprecio = $4, productoimagen = $5, productocatpersona = $6, categoriaid = $7 WHERE productoid = $8',
             [productonombre,productodescripcion,productocantidad,productoprecio,productoimagen,productocatpersona,categoriaid,req.params.id]);
 

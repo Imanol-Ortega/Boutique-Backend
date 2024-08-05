@@ -2,6 +2,8 @@ import { pool } from "../db.js";
 import bcrypt from 'bcrypt'
 
 export const register = async(req,res)=>{
+
+    console.log(req.body)
     try {
         const rb = req.body;
         const find = await pool.query('SELECT usuarionombre FROM usuarios WHERE usuarionombre = $1',[rb.name]);
@@ -33,9 +35,18 @@ export const login = async(req,res)=>{
         const isValid = await bcrypt.compare(rb.password,result.rows[0].usuariocontrasena);
 
         if (isValid){ 
-            res.status(200).json({
-                usuario: result.rows[0].usuarionombre, 
-                rol: result.rows[0].usuariorol})
+            const rp = await pool.query('SELECT clienteid FROM clientes WHERE usuarioid = $1',[result.rows[0].usuarioid]);
+            if(rp.rows == 0){
+                res.status(200).json({
+                    usuario: result.rows[0].usuarionombre, 
+                    rol: result.rows[0].usuariorol
+            });
+            }else{
+                res.status(200).json({
+                    usuario: result.rows[0].usuarionombre, 
+                    rol: result.rows[0].usuariorol,
+                    cliente: rp.rows[0].clienteid});
+            }
         }
         else{
             return res.status(401).json({message:"Contraseña Incorrecta"})

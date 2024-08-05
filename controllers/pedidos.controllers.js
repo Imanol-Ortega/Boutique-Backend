@@ -1,26 +1,29 @@
 import { pool } from "../db.js";
 
 export const guardar = async(req,res)=>{
+    
     try {
         const {pedidototal,clienteid,detalle} = req.body;
+        console.log(req.body)
 
         const response = await pool.query('INSERT INTO pedidos (pedidototal,clienteid,pedidoestado) VALUES($1,$2,$3) RETURNING pedidoid',[pedidototal,clienteid,"P"]);
 
         for(let i=0; i<detalle.length;i++){
-            const rpdetalle = await pool.query('INSERT INTO detalles_pedido (productoid,pedidoid,detallepedidosubtotal,detallepedidocantidad) VALUES ($1,$2,$3,$4)',
-                                            [detalle[i].productoid,response.rows[0].pedidoid,detalle[i].subtotal,detalle[i].cantidad]);
+            const rpdetalle = await pool.query('INSERT INTO detalles_pedido (productoid,pedidoid,detallepedidosubtotal,detallepedidocantidad,tallaid,colorid) VALUES ($1,$2,$3,$4,$5,$6)',
+                                            [detalle[i].productoid,response.rows[0].pedidoid,detalle[i].subtotal,detalle[i].cantidad,detalle[i].tallaid,detalle[i].colorid]);
         }
 
         return res.status(200).json({message:'Se guardo correctamente'});
     } catch (error) {
         return res.status(500).json({message:error.message})
     }
+   
 };
 
 
 export const obtener = async(req,res)=>{
     try {
-        const response = await pool.query('SELECT p.pedidoid, p.pedidofchpedido, p.pedidototal, p.pedidoestado, c.clienteid, c.clientenombre FROM pedidos p JOIN clientes c ON c.clienteid = p.clienteid');
+        const response = await pool.query('SELECT p.pedidoid, p.pedidofchpedido, p.pedidototal, p.pedidoestado, c.clienteid, c.clientenombre FROM pedidos p JOIN clientes c ON c.clienteid = p.clienteid ORDER BY p.pedidoestado DESC');
 
         return res.status(200).json(response.rows);
     } catch (error) {
@@ -43,7 +46,7 @@ export const obtenerUno = async(req,res)=>{
 
 export const obtenerCliente = async(req,res)=>{
     try {
-        const response = await pool.query('SELECT pedidoid, pedidofchpedido, pedidototal, pedidoestado FROM pedidos WHERE clienteid = $1',[req.params.id]);
+        const response = await pool.query('SELECT pedidoid, pedidofchpedido, pedidototal, pedidoestado FROM pedidos WHERE clienteid = $1 AND pedidoestado = $2 ',[req.params.id,"P"]);
 
         return res.status(200).json(response.rows);
     } catch (error) {
